@@ -1,11 +1,14 @@
 import React, { Component } from "react";
 import Result from "./components/Result";
 import Keypad from "./components/Keypad";
+import openSocket from "socket.io-client";
+
+const socket = openSocket("http://localhost:8085");
 
 class App extends Component {
   state = {
     terms: "",
-    result: ""
+    ex: []
   };
 
   onClick = button => {
@@ -17,34 +20,55 @@ class App extends Component {
       this.backspace();
     } else {
       this.setState({
-        terms: this.state.terms + button,
-        result: this.state.result + button
+        terms: this.state.terms + button
       });
     }
   };
 
   clear = () => {
-    this.setState({ result: "" });
+    this.setState({ terms: "" });
   };
 
   backspace = () => {
-    this.setState({ result: this.state.result.slice(0, -1) });
+    this.setState({ terms: this.state.terms.slice(0, -1) });
   };
 
   calculate = () => {
-    try {
-      this.setState({ result: (eval(this.state.result) || "") + "" });
-    } catch (e) {
-      this.setState({ result: "err" });
-    }
+    this.setState({ terms: eval(this.state.terms) });
+    socket.emit("push", this.state.terms);
   };
 
+  displaycalculations = () => {
+    socket.on("initial state", data => this.setState({ ex: data.reverse() }));
+
+    socket.on("pop", terms => this.setState({ ex: terms.reverse() }));
+  };
+
+  componentDidMount() {
+    this.displaycalculations();
+  }
+
   render() {
-    console.log(this.state.terms + " = " + this.state.result);
     return (
-      <div className="ui container">
-        <Result result={this.state.result} />
-        <Keypad onClick={this.onClick} />
+      <div className="ui container" style={{ marginTop: "30px" }}>
+        <div className="ui stackable two column grid">
+          <div className="column">
+            <Result terms={this.state.terms} />
+            <Keypad onClick={this.onClick} />
+          </div>
+          <div className="black column">
+            <h1>Previous Calculations</h1>
+            <ul className="ui list">
+              {this.state.ex.map((term, index) => {
+                return (
+                  <li className="item" key={index}>
+                    {term}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
       </div>
     );
   }
