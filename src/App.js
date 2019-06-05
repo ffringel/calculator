@@ -3,7 +3,7 @@ import Result from "./components/Result";
 import Keypad from "./components/Keypad";
 import openSocket from "socket.io-client";
 
-const socket = openSocket("https://radiant-citadel-92017.herokuapp.com/:3034");
+const socket = openSocket("http://localhost:8085");
 
 class App extends Component {
   state = {
