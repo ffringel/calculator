@@ -1,5 +1,5 @@
 // Procfile
 
-web: npm start
+worker: node server
 
-web: node server
+web: npm start
